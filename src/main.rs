@@ -101,3 +101,17 @@ fn main() {
     info!("Started http server: 127.0.0.1:8080");
     let _ = sys.run();
 }
+
+#[cfg(test)]
+mod tests {
+    // use super::*;
+    extern crate env_logger;
+
+    #[test]
+    fn env_is_configured() {
+        ::std::env::set_var("RUST_LOG", "rust_diesel=info,actix_web=info");
+        let _ = env_logger::try_init();
+        info!("can log from the test too");
+        assert_ne!("", dotenv!("DB_NAME"))
+    }
+}
