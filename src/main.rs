@@ -4,6 +4,11 @@
 //! Actix supports sync actors by default, so we going to create sync actor
 //! that use diesel. Technically sync actors are worker style actors, multiple
 //! of them can run in parallel and process messages from same queue.
+
+#[macro_use]
+extern crate log;
+extern crate env_logger;
+
 extern crate serde;
 extern crate serde_json;
 #[macro_use]
@@ -12,7 +17,6 @@ extern crate serde_derive;
 extern crate diesel;
 extern crate actix;
 extern crate actix_web;
-extern crate env_logger;
 extern crate futures;
 extern crate r2d2;
 extern crate uuid;
@@ -57,28 +61,35 @@ fn index(
 }
 
 fn main() {
-    ::std::env::set_var("RUST_LOG", "actix_web=info");
+    // this modules name is `rust_diesel`, inherited from the project name `rust-diesel`
+    ::std::env::set_var("RUST_LOG", "rust_diesel=info,actix_web=info");
     env_logger::init();
+
+    info!("logging initialized");
     let sys = actix::System::new("diesel-example");
 
     // Start 3 db executor actors
-    let manager = ConnectionManager::<SqliteConnection>::new("test.db");
+    let manager =
+        ConnectionManager::<SqliteConnection>::new("test.db");
     let pool = r2d2::Pool::builder()
         .build(manager)
         .expect("Failed to create pool.");
 
-    let addr = SyncArbiter::start(3, move || DbExecutor(pool.clone()));
+    let addr = SyncArbiter::start(3,
+                                  move || DbExecutor(pool.clone()));
 
     // Start http server
     server::new(move || {
-        App::with_state(AppState{db: addr.clone()})
+        App::with_state(AppState { db: addr.clone() })
             // enable logger
             .middleware(middleware::Logger::default())
-            .resource("/{name}", |r| r.method(http::Method::GET).with(index))
+            .resource("/{name}", |r|
+                r.method(http::Method::GET)
+                    .with(index))
     }).bind("127.0.0.1:8080")
         .unwrap()
         .start();
 
-    println!("Started http server: 127.0.0.1:8080");
+    info!("Started http server: 127.0.0.1:8080");
     let _ = sys.run();
 }
