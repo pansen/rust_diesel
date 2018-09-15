@@ -21,6 +21,12 @@ extern crate futures;
 extern crate r2d2;
 extern crate uuid;
 
+#[macro_use]
+extern crate dotenv_codegen;
+extern crate dotenv;
+
+use dotenv::dotenv;
+
 use actix::prelude::*;
 use actix_web::{
     http, middleware, server, App, AsyncResponder, FutureResponse, HttpResponse, Path,
@@ -61,16 +67,18 @@ fn index(
 }
 
 fn main() {
+    dotenv().ok();
     // this modules name is `rust_diesel`, inherited from the project name `rust-diesel`
     ::std::env::set_var("RUST_LOG", "rust_diesel=info,actix_web=info");
     env_logger::init();
 
     info!("logging initialized");
-    let sys = actix::System::new("diesel-example");
+    let sys = actix::System::new("rust_diesel");
 
+    info!("starting with DB name: {}", dotenv!("DB_NAME"));
     // Start 3 db executor actors
     let manager =
-        ConnectionManager::<SqliteConnection>::new("test.db");
+        ConnectionManager::<SqliteConnection>::new(dotenv!("DB_NAME"));
     let pool = r2d2::Pool::builder()
         .build(manager)
         .expect("Failed to create pool.");
