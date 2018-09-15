@@ -52,6 +52,8 @@ struct AppState {
 fn index(
     (name, state): (Path<String>, State<AppState>),
 ) -> FutureResponse<HttpResponse> {
+    info!("adding a new user named: {} ...", name);
+
     // send async `CreateUser` message to a `DbExecutor`
     state
         .db
@@ -60,7 +62,10 @@ fn index(
         })
         .from_err()
         .and_then(|res| match res {
-            Ok(user) => Ok(HttpResponse::Ok().json(user)),
+            Ok(user) => {
+                info!("that new user: {} was created with id: {}", user.name, user.id);
+                Ok(HttpResponse::Ok().json(user))
+            }
             Err(_) => Ok(HttpResponse::InternalServerError().into()),
         })
         .responder()
