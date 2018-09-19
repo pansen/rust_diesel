@@ -49,9 +49,7 @@ struct AppState {
 }
 
 /// Async request handler
-fn index(
-    (name, state): (Path<String>, State<AppState>),
-) -> FutureResponse<HttpResponse> {
+fn index((name, state): (Path<String>, State<AppState>)) -> FutureResponse<HttpResponse> {
     info!("adding a new user named: {} ...", name);
 
     // send async `CreateUser` message to a `DbExecutor`
@@ -109,8 +107,11 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
     extern crate env_logger;
+
+    use super::*;
+    use actix_web::test::TestServer;
+    use http::{Method};
 
     #[test]
     fn env_is_configured() {
@@ -118,5 +119,44 @@ mod tests {
         let _ = env_logger::try_init();
         info!("can log from the test too");
         assert_ne!("", dotenv!("DB_NAME"))
+    }
+
+    #[test]
+    fn will_respond_200() {
+        ::std::env::set_var("RUST_LOG", "rust_diesel=info,actix_web=info");
+        let _ = env_logger::try_init();
+
+        // Create a testserver
+        // https://github.com/actix/actix-website/blob/master/content/docs/testing.md
+        let mut srv = TestServer::build_with_state(|| {
+            // we can start diesel actors
+            let addr = SyncArbiter::start(3, || {
+                let manager = ConnectionManager::<SqliteConnection>::new(dotenv!("DB_NAME"));
+                let pool = r2d2::Pool::builder()
+                    .build(manager)
+                    .expect("Failed to create pool.");
+                DbExecutor(pool)
+            });
+            // then we can construct custom state, or it could be `()`
+            AppState { db: addr }
+        })
+        // register server handlers and start test server
+        .start(|app| {
+            app.resource("/{name}", |r|
+                r.method(http::Method::GET)
+                    .with(index));
+        });
+
+        let path = "/andi";
+        let request = srv.client(Method::GET, path).finish().unwrap();
+        let response = srv.execute(request.send()).unwrap();
+        info!("response from: {} is {:?}", path, response.status());
+        assert!(response.status().is_success());
+
+        let path = "/";
+        let request = srv.client(Method::GET, path).finish().unwrap();
+        let response = srv.execute(request.send()).unwrap();
+        info!("response from: {} is {:?}", path, response.status());
+        assert_eq!(404, response.status());
     }
 }
