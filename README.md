@@ -15,14 +15,25 @@ diesel migration run
 ### server
 
 ```bash
-cargo install cargo-watch
-
 # if ubuntu : sudo apt-get install libsqlite3-dev
 # if fedora : sudo dnf install libsqlite3x-devel
+
+cargo install cargo-watch
 
 cargo watch -x run
 
 # Started http server: 127.0.0.1:8080
+```
+
+### tests
+
+```bash
+# if ubuntu : sudo apt-get install -y libdbus-1-dev
+# if fedora : sudo yum install dbus-devel 
+
+cargo install cargo-testify
+
+cargo testify
 ```
 
 ### web client
