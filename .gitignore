@@ -1,4 +1,6 @@
 /.env
 /.idea
 /target
-/*.db
+
+**/*.db
+**/*.db-journal

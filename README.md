@@ -29,7 +29,7 @@ cargo watch -x run
 
 ```bash
 # if ubuntu : sudo apt-get install -y libdbus-1-dev
-# if fedora : sudo yum install dbus-devel 
+# if fedora : sudo yum install dbus-devel
 
 cargo install cargo-testify
 
