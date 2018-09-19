@@ -20,7 +20,7 @@ diesel migration run
 
 cargo install cargo-watch
 
-cargo watch -x run
+cargo watch -d 0.1 -x run
 
 # Started http server: 127.0.0.1:8080
 ```
