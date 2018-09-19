@@ -3,7 +3,9 @@ use actix::prelude::*;
 use actix_web::*;
 use diesel;
 use diesel::prelude::*;
+use diesel::r2d2;
 use diesel::r2d2::{ConnectionManager, Pool};
+
 use uuid;
 
 use models;
@@ -52,4 +54,17 @@ impl Handler<CreateUser> for DbExecutor {
 
         Ok(items.pop().unwrap())
     }
+}
+
+pub fn db_executor() -> Addr<DbExecutor> {
+    info!("starting with DB name: {}", dotenv!("DB_NAME"));
+// Start 3 db executor actors
+    let manager =
+        ConnectionManager::<SqliteConnection>::new(dotenv!("DB_NAME"));
+    let pool = r2d2::Pool::builder()
+        .build(manager)
+        .expect("Failed to create pool.");
+    let addr = SyncArbiter::start(3,
+                                  move || DbExecutor(pool.clone()));
+    addr
 }

@@ -78,20 +78,9 @@ fn main() {
     info!("logging initialized");
     let sys = actix::System::new("rust_diesel");
 
-    info!("starting with DB name: {}", dotenv!("DB_NAME"));
-    // Start 3 db executor actors
-    let manager =
-        ConnectionManager::<SqliteConnection>::new(dotenv!("DB_NAME"));
-    let pool = r2d2::Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool.");
-
-    let addr = SyncArbiter::start(3,
-                                  move || DbExecutor(pool.clone()));
-
     // Start http server
     server::new(move || {
-        App::with_state(AppState { db: addr.clone() })
+        App::with_state(AppState { db: db::db_executor().clone() })
             // enable logger
             .middleware(middleware::Logger::default())
             .resource("/{name}", |r|
@@ -104,6 +93,7 @@ fn main() {
     info!("Started http server: 127.0.0.1:8080");
     let _ = sys.run();
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -129,16 +119,8 @@ mod tests {
         // Create a testserver
         // https://github.com/actix/actix-website/blob/master/content/docs/testing.md
         let mut srv = TestServer::build_with_state(|| {
-            // we can start diesel actors
-            let addr = SyncArbiter::start(3, || {
-                let manager = ConnectionManager::<SqliteConnection>::new(dotenv!("DB_NAME"));
-                let pool = r2d2::Pool::builder()
-                    .build(manager)
-                    .expect("Failed to create pool.");
-                DbExecutor(pool)
-            });
             // then we can construct custom state, or it could be `()`
-            AppState { db: addr }
+            AppState { db: db::db_executor() }
         })
         // register server handlers and start test server
         .start(|app| {
