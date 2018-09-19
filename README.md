@@ -8,8 +8,7 @@ Diesel's `Getting Started` guide using SQLite for Actix web
 
 ```bash
 cargo install diesel_cli --no-default-features --features sqlite
-cd examples/diesel
-echo "DATABASE_URL=file:test.db" > .env
+cp .env.example .env
 diesel migration run
 ```
 

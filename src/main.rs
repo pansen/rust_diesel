@@ -108,7 +108,7 @@ mod tests {
         ::std::env::set_var("RUST_LOG", "rust_diesel=info,actix_web=info");
         let _ = env_logger::try_init();
         info!("can log from the test too");
-        assert_ne!("", dotenv!("DB_NAME"))
+        assert_ne!("", dotenv!("DATABASE_URL"))
     }
 
     #[test]

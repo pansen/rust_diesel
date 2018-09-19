@@ -57,10 +57,10 @@ impl Handler<CreateUser> for DbExecutor {
 }
 
 pub fn db_executor() -> Addr<DbExecutor> {
-    info!("starting with DB name: {}", dotenv!("DB_NAME"));
+    info!("starting with DB name: {}", dotenv!("DATABASE_URL"));
 // Start 3 db executor actors
     let manager =
-        ConnectionManager::<SqliteConnection>::new(dotenv!("DB_NAME"));
+        ConnectionManager::<SqliteConnection>::new(dotenv!("DATABASE_URL"));
     let pool = r2d2::Pool::builder()
         .build(manager)
         .expect("Failed to create pool.");
