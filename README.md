@@ -2,6 +2,14 @@
 
 Diesel's `Getting Started` guide using SQLite for Actix web
 
+## Prerequisites
+
+```bash
+# if ubuntu : sudo apt-get install libsqlite3-dev libdbus-1-dev
+# if fedora : sudo dnf install libsqlite3x-devel dbus-devel
+```
+
+
 ## Usage
 
 ### init database sqlite
@@ -15,9 +23,6 @@ diesel migration run
 ### server
 
 ```bash
-# if ubuntu : sudo apt-get install libsqlite3-dev
-# if fedora : sudo dnf install libsqlite3x-devel
-
 cargo install cargo-watch
 
 cargo watch -d 0.1 -x run
@@ -28,9 +33,6 @@ cargo watch -d 0.1 -x run
 ### tests
 
 ```bash
-# if ubuntu : sudo apt-get install -y libdbus-1-dev
-# if fedora : sudo yum install dbus-devel
-
 cargo install cargo-testify
 
 cargo testify
