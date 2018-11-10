@@ -40,34 +40,11 @@ use futures::Future;
 mod db;
 mod models;
 mod schema;
+mod handlers;
 
 use db::{CreateUser, DbExecutor};
+use handlers::index;
 
-/// State with DbExecutor address
-struct AppState {
-    db: Addr<DbExecutor>,
-}
-
-/// Async request handler
-fn index((name, state): (Path<String>, State<AppState>)) -> FutureResponse<HttpResponse> {
-    info!("adding a new user named: {} ...", name);
-
-    // send async `CreateUser` message to a `DbExecutor`
-    state
-        .db
-        .send(CreateUser {
-            name: name.into_inner(),
-        })
-        .from_err()
-        .and_then(|res| match res {
-            Ok(user) => {
-                info!("that new user: {} was created with id: {}", user.name, user.id);
-                Ok(HttpResponse::Ok().json(user))
-            }
-            Err(_) => Ok(HttpResponse::InternalServerError().into()),
-        })
-        .responder()
-}
 
 fn main() {
     dotenv().ok();
@@ -80,12 +57,12 @@ fn main() {
 
     // Start http server
     server::new(move || {
-        App::with_state(AppState { db: db::db_executor().clone() })
+        App::with_state(handlers::index::AppState { db: db::db_executor().clone() })
             // enable logger
             .middleware(middleware::Logger::default())
             .resource("/{name}", |r|
                 r.method(http::Method::GET)
-                    .with(index))
+                    .with(handlers::index::index))
     }).bind("127.0.0.1:8080")
         .unwrap()
         .start();
@@ -120,13 +97,13 @@ mod tests {
         // https://github.com/actix/actix-website/blob/master/content/docs/testing.md
         let mut srv = TestServer::build_with_state(|| {
             // then we can construct custom state, or it could be `()`
-            AppState { db: db::db_executor() }
+            handlers::index::AppState { db: db::db_executor() }
         })
         // register server handlers and start test server
         .start(|app| {
             app.resource("/{name}", |r|
                 r.method(http::Method::GET)
-                    .with(index));
+                    .with(handlers::index::index));
         });
 
         let path = "/andi";
