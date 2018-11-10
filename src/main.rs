@@ -27,23 +27,14 @@ extern crate dotenv;
 
 use dotenv::dotenv;
 
-use actix::prelude::*;
 use actix_web::{
-    http, middleware, server, App, AsyncResponder, FutureResponse, HttpResponse, Path,
-    State,
+    http, middleware, server, App
 };
-
-use diesel::prelude::*;
-use diesel::r2d2::ConnectionManager;
-use futures::Future;
 
 mod db;
 mod models;
 mod schema;
 mod handlers;
-
-use db::{CreateUser, DbExecutor};
-use handlers::index;
 
 
 fn main() {

@@ -2,8 +2,7 @@ use super::super::db::{CreateUser, DbExecutor};
 use actix::*;
 use futures::Future;
 use actix_web::{
-    http, middleware, server, App, AsyncResponder, FutureResponse, HttpResponse, Path,
-    State,
+    AsyncResponder, FutureResponse, HttpResponse, Path, State,
 };
 
 
