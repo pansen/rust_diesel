@@ -1,4 +1,6 @@
 use super::schema::users;
+// use diesel::insertable::Insertable;
+// use diesel::query_builder::query_id::QueryId;
 
 #[derive(Serialize, Queryable)]
 pub struct User {
