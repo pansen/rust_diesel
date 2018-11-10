@@ -28,7 +28,7 @@ extern crate dotenv;
 use dotenv::dotenv;
 
 use actix_web::{
-    http, middleware, server, App
+    http, middleware, server, App,
 };
 
 mod db;
@@ -69,7 +69,7 @@ mod tests {
 
     use super::*;
     use actix_web::test::TestServer;
-    use self::http::{Method};
+    use self::http::Method;
 
     #[test]
     fn env_is_configured() {
