@@ -1,10 +1,10 @@
-use super::super::db::{CreateUser, DbExecutor};
 use actix::*;
-use futures::Future;
 use actix_web::{
-    AsyncResponder, FutureResponse, HttpResponse, Path, State,
+    AsyncResponder, FutureResponse, HttpRequest, HttpResponse, Path,
 };
+use futures::Future;
 
+use super::super::db::{CreateUser, DbExecutor};
 
 /// State with DbExecutor address
 pub struct AppState {
@@ -12,11 +12,11 @@ pub struct AppState {
 }
 
 /// Async request handler
-pub fn index((name, state): (Path<String>, State<AppState>)) -> FutureResponse<HttpResponse> {
+pub fn index((name, req): (Path<String>, HttpRequest<AppState>)) -> FutureResponse<HttpResponse> {
     info!("adding a new user named: {} ...", name);
 
     // send async `CreateUser` message to a `DbExecutor`
-    state
+    req.state()
         .db
         .send(CreateUser {
             name: name.into_inner(),
