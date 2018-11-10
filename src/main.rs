@@ -69,7 +69,7 @@ mod tests {
 
     use super::*;
     use actix_web::test::TestServer;
-    use http::{Method};
+    use self::http::{Method};
 
     #[test]
     fn env_is_configured() {

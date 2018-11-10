@@ -12,6 +12,12 @@ Diesel's `Getting Started` guide using SQLite for Actix web
 
 ## Usage
 
+Default Rust to use nightly, cause we are using Rust edition 2018
+
+```bash
+rustup default nightly
+```
+
 ### init database sqlite
 
 ```bash
