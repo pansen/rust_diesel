@@ -53,7 +53,9 @@ fn main() {
 
     // Start http server
     server::new(move || {
-        App::with_state(AppState { db: db::db_executor().clone() })
+        App::with_state(AppState {
+            db: db::db_executor().clone()
+        })
             // enable logger
             .middleware(middleware::Logger::default())
             .resource("/{name}", |r|
