@@ -4,12 +4,9 @@ use actix_web::{
 };
 use futures::Future;
 
-use super::super::db::{CreateUser, DbExecutor};
+use super::super::AppState;
+use super::super::db::{CreateUser, };
 
-/// State with DbExecutor address
-pub struct AppState {
-    pub db: Addr<DbExecutor>,
-}
 
 /// Async request handler
 pub fn index((name, req): (Path<String>, HttpRequest<AppState>)) -> FutureResponse<HttpResponse> {

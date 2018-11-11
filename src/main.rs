@@ -5,36 +5,41 @@
 //! that use diesel. Technically sync actors are worker style actors, multiple
 //! of them can run in parallel and process messages from same queue.
 
-#[macro_use]
-extern crate log;
-extern crate env_logger;
-
-extern crate serde;
-extern crate serde_json;
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate diesel;
 extern crate actix;
 extern crate actix_web;
-extern crate futures;
-extern crate r2d2;
-extern crate uuid;
-
+#[macro_use]
+extern crate diesel;
+extern crate dotenv;
 #[macro_use]
 extern crate dotenv_codegen;
-extern crate dotenv;
-
-use dotenv::dotenv;
+extern crate env_logger;
+extern crate futures;
+#[macro_use]
+extern crate log;
+extern crate r2d2;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
+extern crate uuid;
 
 use actix_web::{
-    http, middleware, server, App,
+    App, http, middleware, server, ws,
 };
+use dotenv::dotenv;
+use actix::*;
+use self::db::DbExecutor;
 
 mod db;
 mod models;
 mod schema;
 mod handlers;
+
+
+/// State with DbExecutor address
+pub struct AppState {
+    pub db: Addr<DbExecutor>,
+}
 
 
 fn main() {
@@ -48,7 +53,7 @@ fn main() {
 
     // Start http server
     server::new(move || {
-        App::with_state(handlers::index::AppState { db: db::db_executor().clone() })
+        App::with_state(AppState { db: db::db_executor().clone() })
             // enable logger
             .middleware(middleware::Logger::default())
             .resource("/{name}", |r|
@@ -67,8 +72,10 @@ fn main() {
 mod tests {
     extern crate env_logger;
 
-    use super::*;
     use actix_web::test::TestServer;
+
+    use super::*;
+
     use self::http::Method;
 
     #[test]
@@ -88,14 +95,14 @@ mod tests {
         // https://github.com/actix/actix-website/blob/master/content/docs/testing.md
         let mut srv = TestServer::build_with_state(|| {
             // then we can construct custom state, or it could be `()`
-            handlers::index::AppState { db: db::db_executor() }
+            AppState { db: db::db_executor() }
         })
-        // register server handlers and start test server
-        .start(|app| {
-            app.resource("/{name}", |r|
-                r.method(http::Method::GET)
-                    .with(handlers::index::index));
-        });
+            // register server handlers and start test server
+            .start(|app| {
+                app.resource("/{name}", |r|
+                    r.method(http::Method::GET)
+                        .with(handlers::index::index));
+            });
 
         let path = "/andi";
         let request = srv.client(Method::GET, path).finish().unwrap();
