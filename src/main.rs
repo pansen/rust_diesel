@@ -58,9 +58,10 @@ fn main() {
         })
             // enable logger
             .middleware(middleware::Logger::default())
-            .resource("/{name}", |r|
-                r.method(http::Method::GET)
-                    .with(handlers::index::index))
+            // websocket route
+            .resource("/ws/", |r|
+                r.method(http::Method::GET).f(|r| ws::start(r, handlers::ws::MyWebSocket::new())),
+            )
     }).bind("127.0.0.1:8080")
         .unwrap()
         .start();
