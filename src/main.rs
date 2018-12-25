@@ -24,7 +24,7 @@ extern crate serde_json;
 extern crate uuid;
 
 use actix_web::{
-    App, http, middleware, server, ws,
+    App, http, middleware, server,
 };
 use dotenv::dotenv;
 use actix::*;
@@ -34,6 +34,10 @@ mod db;
 mod models;
 mod schema;
 mod handlers;
+
+use self::handlers::index::{
+    ws_index_raw,
+};
 
 
 /// State with DbExecutor address
@@ -59,8 +63,9 @@ fn main() {
             // enable logger
             .middleware(middleware::Logger::default())
             // websocket route
-            .resource("/ws/", |r|
-                r.method(http::Method::GET).f(|r| ws::start(r, handlers::ws::MyWebSocket::new())),
+            .resource(
+                "/ws/",
+                |r| r.method(http::Method::GET).f(ws_index_raw),
             )
     }).bind("127.0.0.1:8080")
         .unwrap()

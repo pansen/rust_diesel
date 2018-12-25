@@ -1,12 +1,23 @@
 use actix::*;
 use actix_web::{
-    AsyncResponder, FutureResponse, HttpRequest, HttpResponse, Path,
+    AsyncResponder, FutureResponse, HttpRequest, HttpResponse, Path, Error, ws,
 };
 use futures::Future;
+use super::ws::MyWebSocket;
 
 use super::super::AppState;
 use super::super::db::{CreateUser, };
 
+
+/// do websocket handshake and start `MyWebSocket` actor
+/// see:
+/// - https://actix.rs/docs/extractors/
+pub fn ws_index_raw<AppState>(r: &HttpRequest<AppState>) -> Result<HttpResponse, Error> {
+    // let params = Path::<(String, String)>::extract(r);
+
+    // start<A, S>(req: &HttpRequest<S>, actor: A) -> Result<HttpResponse, Error>
+    ws::start(r, MyWebSocket::new())
+}
 
 /// Async request handler
 pub fn index((name, req): (Path<String>, HttpRequest<AppState>)) -> FutureResponse<HttpResponse> {
