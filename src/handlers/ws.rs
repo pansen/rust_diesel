@@ -12,14 +12,14 @@ const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// websocket connection is long running connection, it easier
 /// to handle with an actor
-pub struct MyWebSocket {
+pub struct DieselWebSocket {
     /// Client must send ping at least once per 10 seconds (CLIENT_TIMEOUT),
     /// otherwise we drop connection.
     hb: Instant,
 }
 
-impl Actor for MyWebSocket {
     type Context = ws::WebsocketContext<Self>;
+impl Actor for DieselWebSocket {
 
     /// Method is called on actor start. We start the heartbeat process here.
     fn started(&mut self, ctx: &mut Self::Context) {
@@ -28,7 +28,7 @@ impl Actor for MyWebSocket {
 }
 
 /// Handler for `ws::Message`
-impl StreamHandler<ws::Message, ws::ProtocolError> for MyWebSocket {
+impl StreamHandler<ws::Message, ws::ProtocolError> for DieselWebSocket {
     fn handle(&mut self, msg: ws::Message, ctx: &mut Self::Context) {
         // process websocket messages
         println!("WS: {:?}", msg);
@@ -49,7 +49,7 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for MyWebSocket {
     }
 }
 
-impl MyWebSocket {
+impl DieselWebSocket {
     pub fn new() -> Self {
         Self { hb: Instant::now() }
     }
