@@ -41,7 +41,7 @@ use self::handlers::index::{
 
 
 /// State with DbExecutor address
-pub struct AppState {
+pub struct DieselAppState {
     pub db: Addr<DbExecutor>,
 }
 
@@ -57,7 +57,7 @@ fn main() {
 
     // Start http server
     server::new(move || {
-        App::with_state(AppState {
+        App::with_state(DieselAppState {
             db: db::db_executor().clone()
         })
             // enable logger
@@ -103,7 +103,7 @@ mod tests {
         // https://github.com/actix/actix-website/blob/master/content/docs/testing.md
         let mut srv = TestServer::build_with_state(|| {
             // then we can construct custom state, or it could be `()`
-            AppState { db: db::db_executor() }
+            DieselAppState { db: db::db_executor() }
         })
             // register server handlers and start test server
             .start(|app| {

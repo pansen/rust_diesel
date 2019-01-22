@@ -1,5 +1,6 @@
 use std::time::{Instant, Duration};
 
+use super::super::DieselAppState;
 use ::actix::prelude::*;
 use actix_web::{
     ws,
@@ -18,8 +19,8 @@ pub struct DieselWebSocket {
     hb: Instant,
 }
 
-    type Context = ws::WebsocketContext<Self>;
 impl Actor for DieselWebSocket {
+    type Context = ws::WebsocketContext<Self, DieselAppState>;
 
     /// Method is called on actor start. We start the heartbeat process here.
     fn started(&mut self, ctx: &mut Self::Context) {
