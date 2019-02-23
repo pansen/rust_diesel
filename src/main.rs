@@ -67,6 +67,10 @@ fn main() {
                 "/ws/",
                 |r| r.method(http::Method::GET).f(ws_index_raw),
             )
+            .resource(
+                "/{name}",
+                |r| r.method(http::Method::GET).with(handlers::index::index),
+            )
     }).bind("127.0.0.1:8080")
         .unwrap()
         .start();
