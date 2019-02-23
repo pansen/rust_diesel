@@ -2,9 +2,7 @@ use std::time::{Instant, Duration};
 
 use super::super::DieselAppState;
 use ::actix::prelude::*;
-use actix_web::{
-    ws,
-};
+use actix_web::ws;
 
 /// How often heartbeat pings are sent
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);

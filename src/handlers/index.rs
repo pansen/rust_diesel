@@ -1,4 +1,3 @@
-use actix::*;
 use actix_web::{
     AsyncResponder, FutureResponse, HttpRequest, HttpResponse, Path, Error, ws,
 };
@@ -6,7 +5,7 @@ use futures::Future;
 use super::ws::DieselWebSocket;
 
 use super::super::DieselAppState;
-use super::super::db::{CreateUser, };
+use super::super::db::CreateUser;
 
 
 /// do websocket handshake and start `MyWebSocket` actor
