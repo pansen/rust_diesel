@@ -9,8 +9,23 @@ Diesel's `Getting Started` guide using SQLite for Actix web
 # if fedora : sudo dnf install libsqlite3x-devel dbus-devel
 ```
 
+Ensure this to avoid warnings we cannot control:
+
+```bash
+$ cat ~/.cargo/config
+# https://stackoverflow.com/a/38040431
+# https://github.com/rust-lang/rust/issues/50504#issuecomment-412341631
+[build]
+rustflags = ["-Aproc-macro-derive-resolution-fallback"]
+```
 
 ## Usage
+
+Default Rust to use nightly, cause we are using Rust edition 2018
+
+```bash
+rustup default nightly
+```
 
 ### init database sqlite
 

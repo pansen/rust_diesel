@@ -5,69 +5,46 @@
 //! that use diesel. Technically sync actors are worker style actors, multiple
 //! of them can run in parallel and process messages from same queue.
 
-#[macro_use]
-extern crate log;
-extern crate env_logger;
-
-extern crate serde;
-extern crate serde_json;
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate diesel;
 extern crate actix;
 extern crate actix_web;
-extern crate futures;
-extern crate r2d2;
-extern crate uuid;
-
+#[macro_use]
+extern crate diesel;
+extern crate dotenv;
 #[macro_use]
 extern crate dotenv_codegen;
-extern crate dotenv;
+extern crate env_logger;
+extern crate futures;
+#[macro_use]
+extern crate log;
+extern crate r2d2;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
+extern crate uuid;
 
-use dotenv::dotenv;
-
-use actix::prelude::*;
 use actix_web::{
-    http, middleware, server, App, AsyncResponder, FutureResponse, HttpResponse, Path,
-    State,
+    App, http, middleware, server,
 };
-
-use diesel::prelude::*;
-use diesel::r2d2::ConnectionManager;
-use futures::Future;
+use dotenv::dotenv;
+use actix::*;
+use self::db::DbExecutor;
 
 mod db;
 mod models;
 mod schema;
+mod handlers;
 
-use db::{CreateUser, DbExecutor};
+use self::handlers::index::{
+    ws_index_raw,
+};
+
 
 /// State with DbExecutor address
-struct AppState {
-    db: Addr<DbExecutor>,
+pub struct DieselAppState {
+    pub db: Addr<DbExecutor>,
 }
 
-/// Async request handler
-fn index((name, state): (Path<String>, State<AppState>)) -> FutureResponse<HttpResponse> {
-    info!("adding a new user named: {} ...", name);
-
-    // send async `CreateUser` message to a `DbExecutor`
-    state
-        .db
-        .send(CreateUser {
-            name: name.into_inner(),
-        })
-        .from_err()
-        .and_then(|res| match res {
-            Ok(user) => {
-                info!("that new user: {} was created with id: {}", user.name, user.id);
-                Ok(HttpResponse::Ok().json(user))
-            }
-            Err(_) => Ok(HttpResponse::InternalServerError().into()),
-        })
-        .responder()
-}
 
 fn main() {
     dotenv().ok();
@@ -80,12 +57,20 @@ fn main() {
 
     // Start http server
     server::new(move || {
-        App::with_state(AppState { db: db::db_executor().clone() })
+        App::with_state(DieselAppState {
+            db: db::db_executor().clone()
+        })
             // enable logger
             .middleware(middleware::Logger::default())
-            .resource("/{name}", |r|
-                r.method(http::Method::GET)
-                    .with(index))
+            // websocket route
+            .resource(
+                "/ws/",
+                |r| r.method(http::Method::GET).f(ws_index_raw),
+            )
+            .resource(
+                "/{name}",
+                |r| r.method(http::Method::GET).with(handlers::index::index),
+            )
     }).bind("127.0.0.1:8080")
         .unwrap()
         .start();
@@ -99,9 +84,11 @@ fn main() {
 mod tests {
     extern crate env_logger;
 
-    use super::*;
     use actix_web::test::TestServer;
-    use http::{Method};
+
+    use super::*;
+
+    use self::http::Method;
 
     #[test]
     fn env_is_configured() {
@@ -120,14 +107,14 @@ mod tests {
         // https://github.com/actix/actix-website/blob/master/content/docs/testing.md
         let mut srv = TestServer::build_with_state(|| {
             // then we can construct custom state, or it could be `()`
-            AppState { db: db::db_executor() }
+            DieselAppState { db: db::db_executor() }
         })
-        // register server handlers and start test server
-        .start(|app| {
-            app.resource("/{name}", |r|
-                r.method(http::Method::GET)
-                    .with(index));
-        });
+            // register server handlers and start test server
+            .start(|app| {
+                app.resource("/{name}", |r|
+                    r.method(http::Method::GET)
+                        .with(handlers::index::index));
+            });
 
         let path = "/andi";
         let request = srv.client(Method::GET, path).finish().unwrap();
